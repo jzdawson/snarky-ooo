@@ -5,6 +5,21 @@ import Anthropic from '@anthropic-ai/sdk';
 const app = express();
 app.use(express.json());
 
+// Rate limiting: 10 requests per minute per IP
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60 * 1000;
+const requestLog = new Map();
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entries = requestLog.get(ip) || [];
+  const recent = entries.filter((t) => now - t < RATE_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT) return true;
+  recent.push(now);
+  requestLog.set(ip, recent);
+  return false;
+}
+
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
@@ -44,6 +59,11 @@ const STYLE_SEEDS = [
 ];
 
 app.post('/api/generate', async (req, res) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ error: 'Slow down! Max 10 messages per minute. Your snark needs a cooldown.' });
+  }
+
   const { name, startDate, endDate, reason, destination, emergencyContact, emergencyEmail, specialInstructions, snarkLevel } = req.body;
 
   if (!name || !startDate || !endDate) {

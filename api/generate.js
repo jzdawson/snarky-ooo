@@ -4,6 +4,21 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Rate limiting: 10 requests per minute per IP
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60 * 1000;
+const requestLog = new Map();
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entries = requestLog.get(ip) || [];
+  const recent = entries.filter((t) => now - t < RATE_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT) return true;
+  recent.push(now);
+  requestLog.set(ip, recent);
+  return false;
+}
+
 function getSnarkDescription(level) {
   if (level <= 20) {
     return `PROFESSIONAL and polite. This is a standard, courteous out-of-office reply. Warm but businesslike. No snark whatsoever.`;
@@ -41,6 +56,11 @@ const STYLE_SEEDS = [
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.headers['x-real-ip'] || 'unknown';
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ error: 'Slow down! Max 10 messages per minute. Your snark needs a cooldown.' });
   }
 
   const { name, startDate, endDate, reason, destination, emergencyContact, emergencyEmail, specialInstructions, snarkLevel } = req.body;
