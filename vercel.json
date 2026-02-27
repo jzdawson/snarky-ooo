@@ -1,6 +1,10 @@
 {
+  "redirects": [
+    { "source": "/", "destination": "/snarkyOOO", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/snarkyOOO/(.*)", "destination": "/index.html" },
+    { "source": "/snarkyOOO", "destination": "/index.html" }
   ]
 }
