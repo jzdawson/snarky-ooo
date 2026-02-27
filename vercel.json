@@ -4,8 +4,7 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/snarkyOOO/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/snarkyOOO/(.*)", "destination": "/index.html" },
-    { "source": "/snarkyOOO", "destination": "/index.html" }
+    { "source": "/snarkyOOO", "destination": "/index.html" },
+    { "source": "/snarkyOOO/(.*)", "destination": "/index.html" }
   ]
 }
