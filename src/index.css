@@ -158,6 +158,11 @@ body {
   opacity: 0.5;
 }
 
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+
 .form-group select {
   cursor: pointer;
   appearance: none;
